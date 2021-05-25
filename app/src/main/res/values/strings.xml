@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">BleScanner</string>
+    <string name="set_min_max_rssi">Set min/max rssi</string>
+    <string name="set_min_rssi">Set min rssi</string>
+    <string name="set_max_rssi">Set max rssi</string>
+    <string name="mac">Serial</string>
+    <string name="rssi">RSSI</string>
+    <string name="current_min_rssi">\"Current min rssi: \"</string>
+    <string name="current_max_rssi">\"Current max rssi: \"</string>
+    <string name="set_rssi">Set rssi values</string>
+</resources>
