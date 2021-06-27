@@ -3,7 +3,6 @@ package com.example.blescanner;
 import android.os.Bundle;
 import android.util.Log;
 
-
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
@@ -25,13 +24,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SendReportToServer implements Runnable {
-
     private static String url_post_log = "http://95.161.210.44/ble_scanner_report.php";
     private String report;
     private OnTaskCompleted listener;
 
+    public static final int RESPONSE_SUCCESS = 1;
+    public static final int RESPONSE_FAILED = 0;
+
+
     public SendReportToServer(String report, OnTaskCompleted listener) {
-        Log.d("TAG", "Sending log to server");
+        Log.d("TAG", "Sending report to server");
         this.report = report;
         this.listener = listener;
     }
@@ -48,7 +50,6 @@ public class SendReportToServer implements Runnable {
             HttpURLConnection httpsURLConnection = getConnection(u);
             httpsURLConnection.connect();
             int response = httpsURLConnection.getResponseCode();
-
             BufferedReader br;
             StringBuilder content;
             InputStreamReader reader = new InputStreamReader(httpsURLConnection.getInputStream());
@@ -61,14 +62,14 @@ public class SendReportToServer implements Runnable {
             Log.d("TAG", "Send report response: " + response);
             if(response == 200){
                 JSONObject jsonObject = new JSONObject(content.toString());
-                code = Integer.parseInt(jsonObject.getString("code"));
+                int respCode = Integer.parseInt(jsonObject.getString("code"));
+                code = respCode == 1 ? RESPONSE_SUCCESS : RESPONSE_FAILED;
             } else {
-                code = 0;
+                code = RESPONSE_FAILED;
             }
             result.putInt("code", code);
             listener.onTaskCompleted(result);
             reader.close();
-
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (ProtocolException e) {

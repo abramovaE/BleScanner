@@ -16,6 +16,8 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
+
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -26,8 +28,12 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,9 +61,12 @@ public class Bluetooth {
     private boolean isPermissionRequested = false;
     private boolean isGpsRequested = false;
     private boolean isBtRequested = false;
+
     private long startScanningTime;
     private ScanCallback scanCallback;
     private Thread checkScanningTimeThread;
+
+    private LocalDateTime timeStamp;
 
     public boolean isScanning() {
         return isScanning;
@@ -169,16 +178,19 @@ public class Bluetooth {
 
     public void startScan(){
         if(isBtEnabled()) {
-            bleScanner = bluetoothAdapter.getBluetoothLeScanner();
             if (hasPermission()) {
                 if(isGpsEnsbled()) {
                     Log.d("TAG", "all permissions enabled");
-
+                    bleScanner = bluetoothAdapter.getBluetoothLeScanner();
                     results.clear();
                     packageCounter.clear();
                     allResults.clear();
 
-                        List<ScanFilter> filters = new ArrayList<>();
+                    if(Build.VERSION.SDK_INT > 25) {
+                        timeStamp = LocalDateTime.now();
+                    }
+
+                    List<ScanFilter> filters = new ArrayList<>();
                         if (!Build.BRAND.equalsIgnoreCase("google")) {
                             filters.add(new ScanFilter.Builder()
                                     .setManufacturerData(0xffff, new byte[0])
@@ -195,7 +207,6 @@ public class Bluetooth {
                             public void onScanResult(int callbackType, ScanResult result) {
                                 String serial = getSerial(result);
                                 if(serial != null) {
-//                                Logger.d(Logger.BT_LOG, "serial: " + serial);
                                     CustomScanResult res = new CustomScanResult(result);
                                     results.put(serial, res);
                                     allResults.add(res);
@@ -207,9 +218,6 @@ public class Bluetooth {
                                     packageCounter.put(serial, counter);
 
                                 }
-
-
-//                                results.put(result.getDevice().getAddress(), new CustomScanResult(result));
                             }
                         };
 
@@ -219,9 +227,8 @@ public class Bluetooth {
                     bleScanner.startScan(filters, settings, scanCallback);
                         startScanningTime = System.currentTimeMillis();
                         isScanning = true;
-                    ((MainActivity) context).updateScanningLabel();
 
-
+                    ((ScanningFragment)((MainActivity) context).getFragmentHandler().getCurrentFragment()).updateScanningLabel();
                     checkScanningTimeThread = new Thread(new CheckScannerTime());
                     checkScanningTimeThread.start();
 
@@ -229,7 +236,6 @@ public class Bluetooth {
                     if(!isGpsRequested) {
                         requireGps();
                     }
-
                 }
             } else {
                 if(!isPermissionRequested) {
@@ -244,18 +250,19 @@ public class Bluetooth {
     }
 
     public void stopScan(){
-        Log.d("TAG", "stop scanning");
+        Log.d("TAG", "stop scanning, blescanner: " + bleScanner);
         if(bleScanner != null) {
             bleScanner.stopScan(scanCallback);
             isScanning = false;
-            ((MainActivity) context).updateScanningLabel();
+            ((ScanningFragment)((MainActivity) context).getFragmentHandler().getCurrentFragment()).updateScanningLabel();
+
+//            ((MainActivity) context).updateScanningLabel();
             checkScanningTimeThread.interrupt();
         }
 
         Log.d("TAG", "package counter: " + packageCounter);
         Log.d("TAG", "results: " + results);
         Log.d("TAG", "allResults: " + allResults.size());
-
 
         for (Map.Entry<String, CustomScanResult> map: results.entrySet()){
             Log.d("TAG", map.getKey() + " " + getAvRssi(map.getKey()));
@@ -286,7 +293,6 @@ public class Bluetooth {
         public void run() {
             while (!checkScanningTimeThread.isInterrupted()) {
                 if (isScanning && System.currentTimeMillis() - startScanningTime > scanningTimeInSeconds * 1000) {
-
                     stopScan();
 //                    checkScanningTimeThread.interrupt();
                     try {
@@ -299,8 +305,6 @@ public class Bluetooth {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
                 }
-//                Log.d("TAG", "scanning, checkScanningTimeThread: " + checkScanningTimeThread.isInterrupted());
-
             }
         }
     }
@@ -332,10 +336,6 @@ public class Bluetooth {
     }
 
     public int getCounter(CustomScanResult result){
-//        Log.d("TAG: ", result + " 0");
-//        Log.d("TAG: ", result.getScanResult() + " 1");
-//        Log.d("TAG: ", getSerial(result.getScanResult()) + " 2");
-//        Log.d("TAG: ", packageCounter + " 3");
         Integer res = packageCounter.get(getSerial(result.getScanResult()));
         if(res != null)
         return res;
@@ -366,5 +366,22 @@ public class Bluetooth {
         }
         return result;
     }
+
+
+    public String getScanningTime() {
+        String result = "";
+        if(timeStamp == null){
+            if(Build.VERSION.SDK_INT > 25) {
+                result = LocalDateTime.now().toString();
+            } else {
+                result = new Date(startScanningTime).toString();
+            }
+        } else {
+            result = timeStamp.toString();
+        }
+        Log.d("TAG", "timestamp: " + result);
+        return result;
+    }
+
 
 }

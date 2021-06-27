@@ -5,6 +5,7 @@ import android.content.Context;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 
 public class FragmentHandler {
@@ -13,6 +14,10 @@ public class FragmentHandler {
     private Fragment currentFragment;
 
     public final static String SET_RSSIS_DIALOG = "SET_RSSIS_DIALOG";
+
+    public final static String CALLING_FRAGMENT = "CALLING_FRAGMENT";
+    public final static String SCANNING_FRAGMENT = "SCANNING_FRAGMENT";
+
 
     public FragmentManager getFragmentManager() {
         return fragmentManager;
@@ -26,7 +31,10 @@ public class FragmentHandler {
         Fragment fragment = fragmentManager.findFragmentByTag(fragmentTag);
         if(fragment == null){
             switch (fragmentTag){
-
+                case CALLING_FRAGMENT:
+                    return new CallingFragment();
+                case SCANNING_FRAGMENT:
+                    return new ScanningFragment();
             }
         }
         return fragment;
@@ -36,39 +44,34 @@ public class FragmentHandler {
 
 
 
-
-    public void changeFragment(String fragmentTag){
-//        Logger.d(Logger.FRAGMENT_LOG, "change fragment to: " + fragmentTag);
-//        Fragment fragment = getFragment(fragmentTag);
-//        setFragment(fragment, fragmentTag, true);
-    }
-
     public void changeFragment(String fragmentTag, boolean stacked){
-//        Logger.d(Logger.FRAGMENT_LOG, "change fragment to: " + fragmentTag + ", stacked: " + stacked);
-
-//        Fragment fragment = getFragment(fragmentTag);
-//        setFragment(fragment, fragmentTag, stacked);
+        if (currentFragment == null){
+            setFragment(new ScanningFragment(), SCANNING_FRAGMENT, true);
+        }
+        Fragment fragment = getFragment(fragmentTag);
+        setFragment(fragment, fragmentTag, stacked);
     }
 
-    private void setFragment(Fragment fragment, String tag, boolean stacked){
-//        Logger.d(Logger.FRAGMENT_LOG, "set fragment: " + tag + ", stacked: " + stacked);
-
-//        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-//        fragmentTransaction.replace(R.id.fragment_container, fragment, tag);
-//        if (stacked) {
-//            fragmentTransaction.addToBackStack(tag);
-//        }
-//        fragmentTransaction.commit();
-//        try {
-//            Thread.sleep(100);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        currentFragment = fragment;
-    }
 
     public Fragment getCurrentFragment() {
         return currentFragment;
+    }
+
+    private void setFragment(Fragment fragment, String tag, boolean stacked){
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.fragments, fragment, tag);
+        if (stacked) {
+            fragmentTransaction.addToBackStack(tag);
+            fragmentTransaction.commitAllowingStateLoss();
+        } else {
+            fragmentTransaction.commitNowAllowingStateLoss();
+        }
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        currentFragment = fragment;
     }
 
 }
