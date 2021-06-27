@@ -28,9 +28,11 @@ import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -46,6 +48,7 @@ public class Bluetooth {
     private Map<String, CustomScanResult> results;
     private Map<String, Integer> packageCounter;
 
+    private List<CustomScanResult> allResults;
 
     private BluetoothLeScanner bleScanner;
     private Context context;
@@ -55,12 +58,23 @@ public class Bluetooth {
     private long startScanningTime;
     private ScanCallback scanCallback;
     private Thread checkScanningTimeThread;
+
+    public boolean isScanning() {
+        return isScanning;
+    }
+
     private boolean isScanning;
     private LocationManager locationManager;
     private BluetoothAdapter bluetoothAdapter;
 
+    private int scanningTimeInSeconds;
+
     public Map<String, Integer> getPackageCounter() {
         return packageCounter;
+    }
+
+    public void clearPackageCounter() {
+        packageCounter.clear();
     }
 
     public Bluetooth(Context context){
@@ -70,8 +84,7 @@ public class Bluetooth {
         packageCounter = new ConcurrentHashMap<>();
         isScanning = false;
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        checkScanningTimeThread = new Thread(new CheckScannerTime());
-        checkScanningTimeThread.start();
+        allResults = new CopyOnWriteArrayList<>();
     }
 
     private boolean hasPermission(){
@@ -160,6 +173,11 @@ public class Bluetooth {
             if (hasPermission()) {
                 if(isGpsEnsbled()) {
                     Log.d("TAG", "all permissions enabled");
+
+                    results.clear();
+                    packageCounter.clear();
+                    allResults.clear();
+
                         List<ScanFilter> filters = new ArrayList<>();
                         if (!Build.BRAND.equalsIgnoreCase("google")) {
                             filters.add(new ScanFilter.Builder()
@@ -175,17 +193,19 @@ public class Bluetooth {
                         scanCallback = new ScanCallback() {
                             @Override
                             public void onScanResult(int callbackType, ScanResult result) {
-
                                 String serial = getSerial(result);
                                 if(serial != null) {
 //                                Logger.d(Logger.BT_LOG, "serial: " + serial);
-                                    results.put(serial, new CustomScanResult(result));
+                                    CustomScanResult res = new CustomScanResult(result);
+                                    results.put(serial, res);
+                                    allResults.add(res);
                                     int counter = 0;
                                     if(packageCounter.get(serial) != null){
                                         counter = packageCounter.get(serial);
                                     }
                                     counter += 1;
                                     packageCounter.put(serial, counter);
+
                                 }
 
 
@@ -199,6 +219,12 @@ public class Bluetooth {
                     bleScanner.startScan(filters, settings, scanCallback);
                         startScanningTime = System.currentTimeMillis();
                         isScanning = true;
+                    ((MainActivity) context).updateScanningLabel();
+
+
+                    checkScanningTimeThread = new Thread(new CheckScannerTime());
+                    checkScanningTimeThread.start();
+
                 } else {
                     if(!isGpsRequested) {
                         requireGps();
@@ -222,13 +248,23 @@ public class Bluetooth {
         if(bleScanner != null) {
             bleScanner.stopScan(scanCallback);
             isScanning = false;
+            ((MainActivity) context).updateScanningLabel();
+            checkScanningTimeThread.interrupt();
         }
+
+        Log.d("TAG", "package counter: " + packageCounter);
+        Log.d("TAG", "results: " + results);
+        Log.d("TAG", "allResults: " + allResults.size());
+
+
+        for (Map.Entry<String, CustomScanResult> map: results.entrySet()){
+            Log.d("TAG", map.getKey() + " " + getAvRssi(map.getKey()));
+        }
+
     }
 
 
     public List<CustomScanResult> getResults(){
-        Log.d("TAG", "get results: " + results.size());
-
         SharedPreferences sharedPreferences = context.getSharedPreferences(MainActivity.SHARED_PREF_NAME, MODE_PRIVATE);
         int minRssi = sharedPreferences.getInt(MainActivity.MIN_RSSI_TAG, MainActivity.minRssiDefault);
         int maxRssi = sharedPreferences.getInt(MainActivity.MAX_RSSI_TAG, MainActivity.maxRssiDefault);
@@ -236,8 +272,10 @@ public class Bluetooth {
         List<CustomScanResult> res = results.values().stream().filter(it ->
                         (it.getScanResult().getDevice().getName() != null
                                 && it.getScanResult().getDevice().getName().equals("stp"))
-                                && ((currentTime - it.getAppearanceTime()) < MAX_APPEARANCE_TIME
-                        && it.getScanResult().getRssi() > minRssi && it.getScanResult().getRssi() < maxRssi)
+                                && (
+//                                        (currentTime - it.getAppearanceTime()) < MAX_APPEARANCE_TIME
+//                        &&
+                                                it.getScanResult().getRssi() > minRssi && it.getScanResult().getRssi() < maxRssi)
         ).collect(Collectors.toList());
         return res;
     }
@@ -247,18 +285,22 @@ public class Bluetooth {
         @Override
         public void run() {
             while (!checkScanningTimeThread.isInterrupted()) {
-                if (isScanning && System.currentTimeMillis() - startScanningTime > SCANNING_TIME_IN_MINUTES * 60000) {
+                if (isScanning && System.currentTimeMillis() - startScanningTime > scanningTimeInSeconds * 1000) {
+
                     stopScan();
+//                    checkScanningTimeThread.interrupt();
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
                     }
-                    startScan();
+//                    startScan();
                 }
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
                 }
+//                Log.d("TAG", "scanning, checkScanningTimeThread: " + checkScanningTimeThread.isInterrupted());
+
             }
         }
     }
@@ -287,6 +329,42 @@ public class Bluetooth {
             }
         }
         return null;
+    }
+
+    public int getCounter(CustomScanResult result){
+//        Log.d("TAG: ", result + " 0");
+//        Log.d("TAG: ", result.getScanResult() + " 1");
+//        Log.d("TAG: ", getSerial(result.getScanResult()) + " 2");
+//        Log.d("TAG: ", packageCounter + " 3");
+        Integer res = packageCounter.get(getSerial(result.getScanResult()));
+        if(res != null)
+        return res;
+        return 0;
+    }
+
+    public int getScanningTimeInSeconds() {
+        return scanningTimeInSeconds;
+    }
+
+    public void setScanningTimeInSeconds(int scanningTimeInSeconds) {
+        this.scanningTimeInSeconds = scanningTimeInSeconds;
+    }
+
+    public long getAvRssi(String serial){
+        List<CustomScanResult> serialResults = allResults.stream().filter(it -> serial.equals(getSerial(it.getScanResult()))).collect(Collectors.toList());
+        return Math.round(serialResults.stream().mapToInt((it) -> it.getScanResult().getRssi()).average().getAsDouble());
+    }
+
+    public int getPackageCount(String serial){
+        return packageCounter.get(serial);
+    }
+
+    public Map<String, Long> getAllAvRssi(){
+        Map<String, Long> result = new HashMap<>();
+        for(String serial: results.keySet()){
+            result.put(serial, getAvRssi(serial));
+        }
+        return result;
     }
 
 }

@@ -10,8 +10,8 @@ android {
         applicationId "com.example.blescanner"
         minSdkVersion 24
         targetSdkVersion 30
-        versionCode 3
-        versionName "2.0"
+        versionCode 5
+        versionName "2.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -44,4 +44,7 @@ dependencies {
     annotationProcessor "android.arch.lifecycle:compiler:1.0.0"
 
     implementation 'com.google.android.gms:play-services-location:18.0.0'
+    implementation("com.squareup.okhttp3:okhttp:3.1.0")
+    implementation 'org.apache.httpcomponents:httpcore:4.4.1'
+
 }

@@ -6,8 +6,15 @@
     <string name="set_max_rssi">Установить max значение rssi</string>
     <string name="mac">Serial</string>
     <string name="rssi">RSSI</string>
-    <string name="current_min_rssi">Установленное min значение rssi:</string>
-    <string name="current_max_rssi">Установленное max значение rssi:</string>
+    <string name="current_min_rssi">Min rssi:</string>
+    <string name="current_max_rssi">Max rssi:</string>
     <string name="set_rssi">Установить значения rssi</string>
+    <string name="counter">Количество пакетов</string>
+    <string name="analysisTime">Выберите время анализа</string>
+    <string name="analysis">Время анализа</string>
+    <string name="start_scan">Начать сканирование</string>
+    <string name="scanningStarted">Сканировние</string>
+    <string name="scanningStoped">Сканирование остановлено</string>
+    <string name="send_report">Отправить отчет</string>
 
 </resources>

@@ -9,12 +9,22 @@ public class CustomScanResult {
     private ScanResult scanResult;
     private long appearanceTime;
     private String bluetoothDeviceMac;
+    private int counter;
 
+
+    public int getCounter() {
+        return counter;
+    }
+
+    public void setCounter(int counter) {
+        this.counter = counter;
+    }
 
     public CustomScanResult(ScanResult result){
         this.scanResult = result;
         this.appearanceTime = System.currentTimeMillis();
         this.bluetoothDeviceMac = result.getDevice().getAddress();
+        this.counter = 0;
     }
 
     public ScanResult getScanResult() {

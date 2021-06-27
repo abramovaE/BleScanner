@@ -23,22 +23,22 @@
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toEndOf="@id/main_rv_item_tv"
+        app:layout_constraintEnd_toStartOf="@id/main_rv_item_tv_counter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:padding="15dp"
+        android:gravity="center|center_vertical"
+        android:textColor="@color/black"/>
+
+    <TextView
+        android:id="@+id/main_rv_item_tv_counter"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/main_rv_item_tv_rssi"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         android:padding="15dp"
-        android:gravity="center_vertical"
+        android:gravity="center|center_vertical"
         android:textColor="@color/black"/>
-
-<!--    <TextView-->
-<!--        android:id="@+id/main_rv_item_tv_counter"-->
-<!--        android:layout_width="100dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        app:layout_constraintTop_toTopOf="parent"-->
-<!--        app:layout_constraintStart_toEndOf="@id/main_rv_item_tv_rssi"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        android:padding="15dp"-->
-<!--        android:gravity="center_vertical"-->
-<!--        android:textColor="@color/black"/>-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

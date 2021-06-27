@@ -10,9 +10,9 @@
     {
       "type": "SINGLE",
       "filters": [],
-      "versionCode": 3,
-      "versionName": "2.0",
-      "outputFile": "blescanner-2.0-3.apk"
+      "versionCode": 5,
+      "versionName": "2.2",
+      "outputFile": "blescanner-2.2-5.apk"
     }
   ]
 }

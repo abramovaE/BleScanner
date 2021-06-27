@@ -18,6 +18,7 @@ public class MainRVAdapter extends RecyclerView.Adapter<MainRVAdapter.ViewHolder
     public void setResults(List<CustomScanResult> results){
         this.results = results;
     }
+
     public List<CustomScanResult> getResults() {
         return results;
     }
@@ -33,7 +34,12 @@ public class MainRVAdapter extends RecyclerView.Adapter<MainRVAdapter.ViewHolder
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.getTextView().setText(results.get(position).toString());
         holder.getRssiTextView().setText(results.get(position).getScanResult().getRssi() + "");
-//        holder.getCounter().setText(Bluetooth.getPackageCounter().get(results.get(position).toString()));
+        Integer count = results.get(position).getCounter();
+        if (count == null || count == 0){
+            holder.getCounter().setText("");
+        } else {
+            holder.getCounter().setText(count + "");
+        }
     }
 
     @Override
@@ -44,7 +50,7 @@ public class MainRVAdapter extends RecyclerView.Adapter<MainRVAdapter.ViewHolder
     public static class ViewHolder extends RecyclerView.ViewHolder{
         private final TextView textView;
         private final TextView rssi;
-//        private final TextView counter;
+        private final TextView counter;
         public ViewHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(new View.OnClickListener() {
@@ -55,15 +61,13 @@ public class MainRVAdapter extends RecyclerView.Adapter<MainRVAdapter.ViewHolder
             });
             textView = itemView.findViewById(R.id.main_rv_item_tv);
             rssi = itemView.findViewById(R.id.main_rv_item_tv_rssi);
-//            counter = itemView.findViewById(R.id.main_rv_item_tv_counter);
-
-
+            counter = itemView.findViewById(R.id.main_rv_item_tv_counter);
         }
         public TextView getTextView() {
             return textView;
         }
         public TextView getRssiTextView() {return rssi;}
-//        public TextView getCounter(){return counter;}
+        public TextView getCounter(){return counter;}
     }
 
     public MainRVAdapter(List<CustomScanResult> results){
