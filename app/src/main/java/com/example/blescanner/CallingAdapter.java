@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-public class MainRVAdapter extends RecyclerView.Adapter<MainRVAdapter.ViewHolder> {
+public class CallingAdapter extends RecyclerView.Adapter<CallingAdapter.ViewHolder> {
 
     private List<CustomScanResult> results;
 
@@ -26,20 +26,20 @@ public class MainRVAdapter extends RecyclerView.Adapter<MainRVAdapter.ViewHolder
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.main_rv_item, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.calling_rv_item, parent, false);
         return new ViewHolder(v);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.getTextView().setText(results.get(position).toString());
-        holder.getRssiTextView().setText(results.get(position).getScanResult().getRssi() + "");
+//        holder.getRssiTextView().setText(results.get(position).getScanResult().getRssi() + "");
         Integer count = results.get(position).getCounter();
-        if (count == null || count == 0){
-            holder.getCounter().setText("");
-        } else {
-            holder.getCounter().setText(count + "");
-        }
+//        if (count == null || count == 0){
+//            holder.getCounter().setText("");
+//        } else {
+//            holder.getCounter().setText(count + "");
+//        }
     }
 
     @Override
@@ -49,8 +49,8 @@ public class MainRVAdapter extends RecyclerView.Adapter<MainRVAdapter.ViewHolder
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
         private final TextView textView;
-        private final TextView rssi;
-        private final TextView counter;
+//        private final TextView rssi;
+//        private final TextView counter;
         public ViewHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(new View.OnClickListener() {
@@ -59,23 +59,20 @@ public class MainRVAdapter extends RecyclerView.Adapter<MainRVAdapter.ViewHolder
                     Log.d("TAG", "item view: " + getAdapterPosition() + " clicked");
                 }
             });
-            textView = itemView.findViewById(R.id.main_rv_item_tv);
-            rssi = itemView.findViewById(R.id.main_rv_item_tv_rssi);
-            counter = itemView.findViewById(R.id.main_rv_item_tv_counter);
+            textView = itemView.findViewById(R.id.calling_rv_item_tv);
+//            rssi = itemView.findViewById(R.id.calling_rv_item_tv_rssi);
+//            counter = itemView.findViewById(R.id.calling_rv_item_tv_counter);
+//            rssi.setVisibility(View.GONE);
+//            counter.setVisibility(View.GONE);
         }
         public TextView getTextView() {
             return textView;
         }
-        public TextView getRssiTextView() {return rssi;}
-        public TextView getCounter(){return counter;}
+//        public TextView getRssiTextView() {return rssi;}
+//        public TextView getCounter(){return counter;}
     }
 
-    public MainRVAdapter(List<CustomScanResult> results){
+    public CallingAdapter(List<CustomScanResult> results){
         this.results = results;
     }
-
-    public void clearAdapter(){
-        this.results.clear();
-    }
 }
-

@@ -48,6 +48,8 @@ public class Bluetooth {
     public static final int REQUEST_FINE_LOCATION = 2;
     public static final int REQUEST_GPS_ENABLE = 3;
 
+    public static final int SCANNING_TIME_IN_SECONDS = 20*60;
+
     private static final int SCANNING_TIME_IN_MINUTES = 20;
     private static final int MAX_APPEARANCE_TIME = 3000;
 
@@ -216,19 +218,16 @@ public class Bluetooth {
                                     }
                                     counter += 1;
                                     packageCounter.put(serial, counter);
-
                                 }
                             }
                         };
-
                         // TODO: 27.02.2021 add filters
                     Log.d("TAG", "start scanning, bleScanner: " + bleScanner);
-
                     bleScanner.startScan(filters, settings, scanCallback);
-                        startScanningTime = System.currentTimeMillis();
-                        isScanning = true;
+                    startScanningTime = System.currentTimeMillis();
+                    isScanning = true;
 
-                    ((ScanningFragment)((MainActivity) context).getFragmentHandler().getCurrentFragment()).updateScanningLabel();
+                    ((ScanningLabelUpdate)((MainActivity) context).getFragmentHandler().getCurrentFragment()).updateScanningLabel();
                     checkScanningTimeThread = new Thread(new CheckScannerTime());
                     checkScanningTimeThread.start();
 
@@ -254,28 +253,29 @@ public class Bluetooth {
         if(bleScanner != null) {
             bleScanner.stopScan(scanCallback);
             isScanning = false;
-            ((ScanningFragment)((MainActivity) context).getFragmentHandler().getCurrentFragment()).updateScanningLabel();
+            ((ScanningLabelUpdate)((MainActivity) context).getFragmentHandler().getCurrentFragment()).updateScanningLabel();
+
+//            ((ScanningFragment)((MainActivity) context).getFragmentHandler().getCurrentFragment()).updateScanningLabel();
 
 //            ((MainActivity) context).updateScanningLabel();
             checkScanningTimeThread.interrupt();
         }
-
         Log.d("TAG", "package counter: " + packageCounter);
         Log.d("TAG", "results: " + results);
         Log.d("TAG", "allResults: " + allResults.size());
-
         for (Map.Entry<String, CustomScanResult> map: results.entrySet()){
             Log.d("TAG", map.getKey() + " " + getAvRssi(map.getKey()));
         }
-
     }
 
 
-    public List<CustomScanResult> getResults(){
+
+    public List<CustomScanResult> getScanningResults(){
+//        Log.d("TAG", "get scanninig results");
         SharedPreferences sharedPreferences = context.getSharedPreferences(MainActivity.SHARED_PREF_NAME, MODE_PRIVATE);
         int minRssi = sharedPreferences.getInt(MainActivity.MIN_RSSI_TAG, MainActivity.minRssiDefault);
         int maxRssi = sharedPreferences.getInt(MainActivity.MAX_RSSI_TAG, MainActivity.maxRssiDefault);
-        long currentTime = System.currentTimeMillis();
+//        long currentTime = System.currentTimeMillis();
         List<CustomScanResult> res = results.values().stream().filter(it ->
                         (it.getScanResult().getDevice().getName() != null
                                 && it.getScanResult().getDevice().getName().equals("stp"))
@@ -284,9 +284,25 @@ public class Bluetooth {
 //                        &&
                                                 it.getScanResult().getRssi() > minRssi && it.getScanResult().getRssi() < maxRssi)
         ).collect(Collectors.toList());
+        res.stream().forEach(it->it.setCounter(getCounter(it)));
         return res;
     }
 
+    public List<CustomScanResult> getCallingResults(){
+        Log.d("TAG", "get calling results");
+
+        SharedPreferences sharedPreferences = context.getSharedPreferences(MainActivity.SHARED_PREF_NAME, MODE_PRIVATE);
+        int minRssi = sharedPreferences.getInt(MainActivity.MIN_RSSI_TAG, MainActivity.minRssiDefault);
+        int maxRssi = sharedPreferences.getInt(MainActivity.MAX_RSSI_TAG, MainActivity.maxRssiDefault);
+        long currentTime = System.currentTimeMillis();
+        List<CustomScanResult> res = results.values().stream().filter(it ->
+                        (it.getScanResult().getDevice().getName() != null
+                                && it.getScanResult().getDevice().getName().equals("stp"))
+                                && ((currentTime - it.getAppearanceTime()) < MAX_APPEARANCE_TIME
+                                && it.getScanResult().getRssi() > minRssi && it.getScanResult().getRssi() < maxRssi)
+        ).collect(Collectors.toList());
+        return res;
+    }
 
     private class CheckScannerTime implements Runnable{
         @Override
@@ -367,7 +383,6 @@ public class Bluetooth {
         return result;
     }
 
-
     public String getScanningTime() {
         String result = "";
         if(timeStamp == null){
@@ -382,6 +397,4 @@ public class Bluetooth {
         Log.d("TAG", "timestamp: " + result);
         return result;
     }
-
-
 }

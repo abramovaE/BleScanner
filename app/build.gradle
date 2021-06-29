@@ -31,6 +31,8 @@ android {
             outputFileName = "blescanner-${variant.versionName}-${variant.versionCode}.apk"
         }
     }
+
+
 }
 
 dependencies {
@@ -48,4 +50,4 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:3.1.0")
     implementation 'org.apache.httpcomponents:httpcore:4.4.1'
 
-}
+    implementation "com.google.android.material:material:1.1.0-beta01"}

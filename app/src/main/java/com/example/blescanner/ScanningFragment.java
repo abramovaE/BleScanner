@@ -119,6 +119,7 @@ public class ScanningFragment extends Fragment implements ScanningLabelUpdate{
             @Override
             public void onClick(View v) {
                 bluetooth.startScan();
+//                utils.startRvTimer();
             }
         });
         scanningLabel = view.findViewById(R.id.scanningLabel);
@@ -130,11 +131,13 @@ public class ScanningFragment extends Fragment implements ScanningLabelUpdate{
     }
 
     private void updateAdapter(List<CustomScanResult> results){
-        Log.d("TAG", "update adapter");
-        CustomScanResultDiffUtil customScanResultDiffUtilCallback = new CustomScanResultDiffUtil(mainRVAdapter.getResults(), results);
-        DiffUtil.DiffResult customDiffUtilResult = DiffUtil.calculateDiff(customScanResultDiffUtilCallback);
-        mainRVAdapter.setResults(results);
-        customDiffUtilResult.dispatchUpdatesTo(mainRVAdapter);
+        Log.d("TAG", "update scanning adapter, " + bluetooth.isScanning());
+        if(bluetooth.isScanning()) {
+            CustomScanResultDiffUtil customScanResultDiffUtilCallback = new CustomScanResultDiffUtil(mainRVAdapter.getResults(), results);
+            DiffUtil.DiffResult customDiffUtilResult = DiffUtil.calculateDiff(customScanResultDiffUtilCallback);
+            mainRVAdapter.setResults(results);
+            customDiffUtilResult.dispatchUpdatesTo(mainRVAdapter);
+        }
     }
 
     private void updateRssiTv(int minRssi, int maxRssi){
@@ -239,8 +242,12 @@ public class ScanningFragment extends Fragment implements ScanningLabelUpdate{
 
     @Override
     public void onStart() {
+        Log.d("TAG", "scanning on start");
         super.onStart();
         utils.startRvTimer();
+//        bluetooth.clearResults();
+        bluetooth.stopScan();
+//        mainRVAdapter.clearAdapter();
     }
 
     @Override
@@ -253,5 +260,16 @@ public class ScanningFragment extends Fragment implements ScanningLabelUpdate{
     public void onStop() {
         super.onStop();
         bluetooth.stopScan();
+    }
+
+    @Override
+    public void onResume() {
+        Log.d("TAG", "scanning on resume");
+//        bluetooth.clearResults();
+//        utils.stopRvTimer();
+        bluetooth.stopScan();
+        scanningLabel.setText("");
+        super.onResume();
+
     }
 }

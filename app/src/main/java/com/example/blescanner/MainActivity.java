@@ -4,14 +4,21 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
+
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import static com.example.blescanner.Bluetooth.REQUEST_BT_ENABLE;
 import static com.example.blescanner.Bluetooth.REQUEST_FINE_LOCATION;
@@ -34,6 +41,9 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted {
     public static final String MIN_RSSI_TAG = "min_rssi";
     public static final String MAX_RSSI_TAG = "max_rssi";
 
+    private Button scanningTab;
+    private Button callingTab;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,11 +51,69 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted {
         setContentView(R.layout.activity_main);
         Log.d("TAG", "activity on create");
         bluetooth = new Bluetooth(this);
+
+
+//        // Получаем ViewPager и устанавливаем в него адаптер
+//        TabLayout tabLayout = findViewById(R.id.tabs);
+//        ViewPager2 viewPager2 = findViewById(R.id.viewpager);
+//        viewPager2.setAdapter(new SampleFragmentPagerAdapter(getSupportFragmentManager(), getLifecycle()));
+//
+//        new TabLayoutMediator(tabLayout, viewPager2, new TabLayoutMediator.TabConfigurationStrategy() {
+//            @Override
+//            public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
+//                switch (position){
+//                    case 0:
+//                        bluetooth.stopScan();
+//                        tab.setText("Scan");
+//                        break;
+//                    case 1:
+//                        bluetooth.startScan();
+//                        tab.setText("Call");
+//                        break;
+//                }
+//
+//            }
+//        }).attach();
+
+
+
+
         viewModel = ViewModelProviders.of(this, new CustomViewModel.ModelFactory()).get(CustomViewModel.class);
         sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, MODE_PRIVATE);
         fragmentHandler = new FragmentHandler(this);
-        utils = new Utils(bluetooth, viewModel);
+        utils = new Utils(bluetooth, viewModel, this);
         fragmentHandler.changeFragment(FragmentHandler.SCANNING_FRAGMENT, true);
+
+
+        scanningTab = findViewById(R.id.tab1);
+        callingTab = findViewById(R.id.tab2);
+
+        scanningTab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fragmentHandler.changeFragment(FragmentHandler.SCANNING_FRAGMENT, true);
+                scanningTab.setBackground(getDrawable(R.drawable.tab_bg_selected));
+                scanningTab.setTextColor(getColor(R.color.black));
+                callingTab.setBackground(getDrawable(R.drawable.tab_bg));
+                callingTab.setTextColor(getColor(R.color.white));
+            }
+        });
+
+        callingTab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fragmentHandler.changeFragment(FragmentHandler.CALLING_FRAGMENT, true);
+                callingTab.setBackground(getDrawable(R.drawable.tab_bg_selected));
+                callingTab.setTextColor(getColor(R.color.black));
+                scanningTab.setBackground(getDrawable(R.drawable.tab_bg));
+                scanningTab.setTextColor(getColor(R.color.white));
+            }
+        });
+
+        scanningTab.setBackground(getDrawable(R.drawable.tab_bg_selected));
+        scanningTab.setTextColor(getColor(R.color.black));
+        callingTab.setBackground(getDrawable(R.drawable.tab_bg));
+        callingTab.setTextColor(getColor(R.color.white));
     }
 
 

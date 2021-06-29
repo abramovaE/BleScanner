@@ -9,33 +9,36 @@ public class Utils {
     private Bluetooth bluetooth;
     private CustomViewModel viewModel;
     private Thread t;
+    private MainActivity mainActivity;
 
-    int counter;
-
-    public Utils(Bluetooth bluetooth, CustomViewModel viewModel) {
+    public Utils(Bluetooth bluetooth, CustomViewModel viewModel, MainActivity mainActivity) {
         this.bluetooth = bluetooth;
         this.viewModel = viewModel;
+        this.mainActivity = mainActivity;
     }
 
     public void startRvTimer(){
-        counter = 0;
+        Log.d("TAG", "start rv timer: " + t);
         if(t != null){
             t.interrupt();
         }
         t = new Thread(new Runnable() {
             @Override
             public void run() {
+                Log.d("TAG", "new thread");
                 while (true) {
-                    counter+=1;
-                    List<CustomScanResult> results = bluetooth.getResults();
-//                    if(counter%2 == 0) {
-                        for(CustomScanResult result: results){
-                            result.setCounter(bluetooth.getCounter(result));
-                        }
-//                        bluetooth.clearPackageCounter();
-//                    }
-                    viewModel.updateResults(results);
-
+                    switch (mainActivity.getFragmentHandler().getCurrentFragment().getTag()){
+                        case FragmentHandler.SCANNING_FRAGMENT:
+                            List<CustomScanResult> results = bluetooth.getScanningResults();
+                            Log.d("TAG", "update scan results");
+                            viewModel.updateResults(results);
+                            break;
+                        case FragmentHandler.CALLING_FRAGMENT:
+                            List<CustomScanResult> callingResults = bluetooth.getCallingResults();
+                            Log.d("TAG", "update call results");
+                            viewModel.updateCallingResults(callingResults);
+                            break;
+                    }
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {

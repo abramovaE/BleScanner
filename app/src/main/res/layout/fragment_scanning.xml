@@ -84,8 +84,6 @@
         android:padding="5dp"
         android:layout_margin="5dp"/>
 
-
-
     <Button
         android:id="@+id/btn_set_rssi"
         android:layout_width="match_parent"
@@ -105,8 +103,6 @@
         android:textSize="15sp"
         android:textStyle="normal"
         android:visibility="gone" />
-
-
 
     <TextView
         android:id="@+id/main_rv_item_tv"
@@ -146,7 +142,6 @@
         android:text="@string/counter"
         android:gravity="center|center_vertical"
         android:textColor="@color/black"/>
-
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/main_rv"

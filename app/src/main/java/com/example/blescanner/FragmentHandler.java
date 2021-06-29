@@ -41,9 +41,6 @@ public class FragmentHandler {
     }
 
 
-
-
-
     public void changeFragment(String fragmentTag, boolean stacked){
         if (currentFragment == null){
             setFragment(new ScanningFragment(), SCANNING_FRAGMENT, true);
@@ -73,5 +70,9 @@ public class FragmentHandler {
         }
         currentFragment = fragment;
     }
+
+
+
+
 
 }
